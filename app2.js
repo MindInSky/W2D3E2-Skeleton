@@ -20,7 +20,6 @@ class UI {
         <td>${book.author}</td>
         <td>${book.isbn}</td>
         <td><a href="#" class="delete">X</a></td>`;
-
     list.appendChild(row);
   }
 
@@ -28,6 +27,10 @@ class UI {
   deleteBook(target) {
     if (target.className === "delete") {
       target.parentElement.parentElement.remove();
+      let erase = target.parentElement.parentElement.children;
+      let terase = erase[2].innerText;
+      Store.removeBook(terase);
+      ui.showAlert("Book Removed", "success");
     }
   }
 
@@ -81,6 +84,7 @@ function handlerSubmit(e) {
   } else {
     // add book to html booklist
     ui.addBookToList(book);
+    Store.addBook(book);
 
     // clear fields from form
     ui.clearField();
@@ -91,9 +95,53 @@ function handlerSubmit(e) {
 
 document.getElementById("book-list").addEventListener("click", function(e) {
   e.preventDefault();
-
   ui = new UI();
   ui.deleteBook(e.target);
-
-  ui.showAlert("Book Removed", "success");
 });
+
+// Local Storage Class
+class Store {
+  static getBooks() {
+    let books;
+    if (localStorage.getItem("books") === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem("books"));
+    }
+
+    return books;
+  }
+
+  static displayBooks() {
+    const books = Store.getBooks();
+
+    books.forEach(function(book) {
+      const ui = new UI();
+
+      // Add book to UI
+      ui.addBookToList(book);
+    });
+  }
+
+  static addBook(book) {
+    const books = Store.getBooks();
+
+    books.push(book);
+
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+
+  static removeBook(isbn) {
+    const books = Store.getBooks();
+
+    books.forEach(function(book, index) {
+      if (book.isbn === isbn) {
+        books.splice(index, 1);
+      }
+    });
+
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+}
+
+Store.displayBooks();
